@@ -8,6 +8,7 @@ import in.kuros.jfirebase.exception.PersistenceException;
 import in.kuros.jfirebase.provider.firebase.query.QueryBuilder;
 import in.kuros.jfirebase.transaction.Transaction;
 
+import in.kuros.jfirebase.util.ClassMapperHelper;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -35,7 +36,7 @@ public class TransactionImpl extends WriteBatchImpl implements Transaction {
                     .getDocuments()
                     .stream()
                     .map(doc -> {
-                        final T object = doc.toObject(queryBuilder.getResultType());
+                        final T object = ClassMapperHelper.toObject(queryBuilder.getResultType(), doc);
                         entityHelper.setId(object, doc.getId());
                         return object;
                     })
@@ -51,7 +52,7 @@ public class TransactionImpl extends WriteBatchImpl implements Transaction {
             final QueryBuilder<T> queryBuilder = (QueryBuilder<T>) query;
             final DocumentReference document = firestore.document(queryBuilder.getPath());
             final DocumentSnapshot documentSnapshot = transaction.get(document).get();
-            final T object = documentSnapshot.toObject(queryBuilder.getResultType());
+            final T object = ClassMapperHelper.toObject(queryBuilder.getResultType(), documentSnapshot);
             return Optional.ofNullable(object)
                     .map(e -> {
                         entityHelper.setId(e, documentSnapshot.getId());
