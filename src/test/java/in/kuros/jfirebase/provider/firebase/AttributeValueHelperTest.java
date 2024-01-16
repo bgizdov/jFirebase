@@ -1,6 +1,11 @@
 package in.kuros.jfirebase.provider.firebase;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertIterableEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import com.google.cloud.firestore.FieldPath;
 import com.google.common.collect.Lists;
 import in.kuros.jfirebase.entity.TestClass;
@@ -9,20 +14,13 @@ import in.kuros.jfirebase.exception.PersistenceException;
 import in.kuros.jfirebase.metadata.AttributeValue;
 import in.kuros.jfirebase.metadata.MetadataProcessor;
 import in.kuros.jfirebase.metadata.ValuePath;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertIterableEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 class AttributeValueHelperTest {
 
@@ -78,7 +76,7 @@ class AttributeValueHelperTest {
     }
 
     @Test
-    void shouldAddValuePathsToMap() throws JsonProcessingException {
+    void shouldAddValuePathsToMap() {
         final Map<String, Object> map = new HashMap<>();
         map.put("xyz", "lkasd");
 

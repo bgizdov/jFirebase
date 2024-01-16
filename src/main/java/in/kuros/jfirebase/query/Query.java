@@ -1,14 +1,14 @@
 package in.kuros.jfirebase.query;
 
-
 import com.google.cloud.firestore.DocumentSnapshot;
+import com.google.cloud.firestore.Filter;
 import in.kuros.jfirebase.metadata.Attribute;
 import in.kuros.jfirebase.metadata.MapAttribute;
-
 import java.util.List;
 
 public interface Query<T> {
 
+    <X> Query<T> where(Filter filter);
     <X> Query<T> whereEqualTo(Attribute<T, X> field, X value);
 
     <K, V> Query<T> whereEqualTo(MapAttribute<T, K, V> field, K key, V value);
