@@ -1,20 +1,20 @@
 package in.kuros.jfirebase.provider.firebase.query;
 
+import static com.google.cloud.firestore.Query.Direction.DESCENDING;
+
 import com.google.cloud.firestore.DocumentSnapshot;
+import com.google.cloud.firestore.Filter;
 import in.kuros.jfirebase.metadata.Attribute;
 import in.kuros.jfirebase.metadata.MapAttribute;
 import in.kuros.jfirebase.provider.firebase.EntityHelper;
 import in.kuros.jfirebase.query.Query;
 import in.kuros.jfirebase.util.PropertyNamingStrategy;
-
-import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
-
-import static com.google.cloud.firestore.Query.Direction.DESCENDING;
+import javax.annotation.Nonnull;
 
 abstract class QueryImpl<T> implements Query<T> {
 
@@ -24,6 +24,12 @@ abstract class QueryImpl<T> implements Query<T> {
     QueryImpl() {
         this.queries = new ArrayList<>();
         this.namingStrategy = EntityHelper.INSTANCE.getPropertyNamingStrategy();
+    }
+
+    @Override
+    public <X> Query<T> where (Filter filter) {
+        queries.add(query -> query.where(filter));
+        return this;
     }
 
     @Override
