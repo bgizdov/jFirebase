@@ -6,7 +6,7 @@ import in.kuros.jfirebase.metadata.UpdateAttribute;
 
 public interface WriteBatch {
 
-    <T> void create(T entity);
+    <T> T create(T entity);
 
     <T> void set(T entity);
 
