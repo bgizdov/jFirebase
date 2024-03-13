@@ -278,6 +278,17 @@ class PersistenceServiceImpl implements PersistenceService {
         }
     }
 
+    @Override
+    public <T> long count(Query<T> query) {
+        try {
+            AggregateQuery aggregateQuery = QueryAdapter.toFirebaseQuery(firestore, query).count();
+            final ApiFuture<AggregateQuerySnapshot> querySnapshot = aggregateQuery.get();
+            return querySnapshot.get().getCount();
+        } catch (final Exception e) {
+            throw new PersistenceException(e);
+        }
+    }
+
     @SuppressWarnings("unchecked")
     private <T> Class<T> getClass(final T entity) {
         return (Class<T>) entity.getClass();

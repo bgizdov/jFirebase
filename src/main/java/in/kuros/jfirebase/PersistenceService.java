@@ -45,6 +45,8 @@ public interface PersistenceService {
 
     List<WriteResult> writeInBatch(Consumer<WriteBatch> batchConsumer);
 
+    <T> long count(Query<T> query);
+
     static void init() {
     }
 }
