@@ -37,21 +37,25 @@ public class WriteBatchImpl implements WriteBatch {
     }
 
     @Override
-    public <T> void create(final T entity) {
+    public <T> T create(final T entity) {
         final CollectionReference collectionReference = getCollectionReference(entity);
         final String id = entityHelper.getId(entity);
         entityHelper.setCreateTime(entity);
+        entityHelper.setUpdateTime(entity);
         final DocumentReference document = id == null ? collectionReference.document() : collectionReference.document(id);
         final BeanMapper<T> beanMapper = ClassMapper.getBeanMapper(getBeanClass(entity));
 
         updateBuilder.create(document, beanMapper.serialize(entity));
         entityHelper.setId(entity, document.getId());
+
+        return entity;
     }
 
     @Override
     public <T> void set(final T entity) {
         final DocumentReference document = getDocumentReference(entity);
         final BeanMapper<T> beanMapper = ClassMapper.getBeanMapper(getBeanClass(entity));
+        entityHelper.setUpdateTime(entity);
         updateBuilder.set(document, beanMapper.serialize(entity));
     }
 

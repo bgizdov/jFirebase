@@ -16,18 +16,18 @@ Step 1. Add the JitPack repository to your build file
 
 ```
 <repositories>
-		<repository>
-		    <id>jitpack.io</id>
-		    <url>https://jitpack.io</url>
-		</repository>
-	</repositories>
+    <repository>
+        <id>jitpack.io</id>
+        <url>https://jitpack.io</url>
+    </repository>
+</repositories>
   ```
   Step 2. Add the dependency
   
   ```
   <dependency>
-	    <groupId>com.github.bgizdov</groupId>
-	    <artifactId>jFirebase</artifactId>
-	    <version>1.2.6</version>
-	</dependency>
+    <groupId>com.github.bgizdov</groupId>
+    <artifactId>jFirebase</artifactId>
+    <version>1.3.1</version>
+</dependency>
   ```
