@@ -68,6 +68,16 @@ class PersistenceServiceImpl implements PersistenceService {
     @SafeVarargs
     @Override
     public final <T> List<WriteResult> set(final T... entities) {
+        return set(SetOptions.merge(), entities);
+    }
+
+    @SafeVarargs
+    @Override
+    public final <T> List<WriteResult> setOverwrite(final T... entities) {
+        return set(null, entities);
+    }
+
+    private <T> List<WriteResult> set(SetOptions options, final T... entities) {
         final com.google.cloud.firestore.WriteBatch batch = firestore.batch();
 
         for (T entity : entities) {
@@ -76,7 +86,15 @@ class PersistenceServiceImpl implements PersistenceService {
             Date date = new Date();
             entityHelper.setUpdateTime(entity, date);
             setCreateTimeOnUpdate(entity, date);
-            batch.set(documentReference, beanMapper.serialize(entity), SetOptions.merge());
+
+            if (Objects.isNull(options)) {
+                // Overwrite the document
+                batch.set(documentReference, beanMapper.serialize(entity));
+            } else {
+                // Merge fields from new documents with existing document
+                batch.set(documentReference, beanMapper.serialize(entity), options);
+            }
+
         }
 
         try {
