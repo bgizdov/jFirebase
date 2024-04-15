@@ -28,6 +28,6 @@ Step 1. Add the JitPack repository to your build file
   <dependency>
     <groupId>com.github.bgizdov</groupId>
     <artifactId>jFirebase</artifactId>
-    <version>1.3.1</version>
+    <version>1.4.0</version>
 </dependency>
   ```

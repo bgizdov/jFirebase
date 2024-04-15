@@ -1,6 +1,5 @@
 package in.kuros.jfirebase;
 
-
 import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.WriteResult;
 import in.kuros.jfirebase.metadata.Attribute;
@@ -10,7 +9,6 @@ import in.kuros.jfirebase.metadata.UpdateAttribute;
 import in.kuros.jfirebase.query.Query;
 import in.kuros.jfirebase.transaction.Transaction;
 import in.kuros.jfirebase.transaction.WriteBatch;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -26,7 +24,7 @@ public interface PersistenceService {
     <T> WriteResult set(T entity, Attribute<T, ?> attribute);
 
     <T> WriteResult set(SetAttribute<T> setAttribute);
-
+    <T> List<WriteResult> setOverwrite(T... entities);
     <T> WriteResult remove(RemoveAttribute<T> removeAttribute);
 
     <T> WriteResult update(final UpdateAttribute<T> updateAttribute);
