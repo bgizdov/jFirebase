@@ -307,6 +307,16 @@ class PersistenceServiceImpl implements PersistenceService {
         }
     }
 
+    public <T> Object sum(Query<T> query, String fieldName) {
+        try {
+            AggregateQuery aggregateQuery = QueryAdapter.toFirebaseQuery(firestore, query).aggregate(AggregateField.sum(fieldName));
+            final ApiFuture<AggregateQuerySnapshot> querySnapshot = aggregateQuery.get();
+            return querySnapshot.get().get(AggregateField.sum(fieldName));
+        } catch (final Exception e) {
+            throw new PersistenceException(e);
+        }
+    }
+
     @SuppressWarnings("unchecked")
     private <T> Class<T> getClass(final T entity) {
         return (Class<T>) entity.getClass();
