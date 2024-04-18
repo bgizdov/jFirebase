@@ -45,6 +45,8 @@ public interface PersistenceService {
 
     <T> long count(Query<T> query);
 
+    <T> Object sum(Query<T> query, String field);
+
     static void init() {
     }
 }
