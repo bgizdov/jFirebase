@@ -209,6 +209,8 @@ class PersistenceServiceImpl implements PersistenceService {
     @Override
     public WriteResult updateFields(final String path, final Map<String, Object> fields) {
         try {
+            // Apply property naming strategy to convert field names (e.g., reactionsCount -> reactions_count)
+            // and serialize nested objects with proper field name translation
             final Map<String, Object> translatedFields = new java.util.HashMap<>();
             final PropertyNamingStrategy namingStrategy = entityHelper.getPropertyNamingStrategy();
 
@@ -216,7 +218,10 @@ class PersistenceServiceImpl implements PersistenceService {
                 String translatedKey = namingStrategy != null
                     ? namingStrategy.translate(entry.getKey())
                     : entry.getKey();
-                translatedFields.put(translatedKey, entry.getValue());
+                // Serialize the value to handle nested objects (e.g., List<Reaction>)
+                // This ensures nested objects also get their field names translated
+                Object serializedValue = ClassMapper.serialize(entry.getValue());
+                translatedFields.put(translatedKey, serializedValue);
             }
 
             return firestore.document(path).update(translatedFields).get();
