@@ -10,6 +10,7 @@ import in.kuros.jfirebase.query.Query;
 import in.kuros.jfirebase.transaction.Transaction;
 import in.kuros.jfirebase.transaction.WriteBatch;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -30,6 +31,16 @@ public interface PersistenceService {
     <T> WriteResult update(final UpdateAttribute<T> updateAttribute);
 
     WriteResult updateFields(String path, String field, Object value);
+
+    /**
+     * Update multiple fields atomically using a custom document path.
+     * This is useful for subcollections where the path needs to be constructed manually.
+     * Field names will be automatically converted using the PropertyNamingStrategy (e.g., reactionsCount -> reactions_count).
+     * @param path Full document path (e.g. "fu_discussion/123/fu_post/456")
+     * @param fields Map of field names (in Java camelCase) to values to update
+     * @return WriteResult from the update operation
+     */
+    WriteResult updateFields(String path, Map<String, Object> fields);
 
     <T> List<WriteResult> delete(T... entities);
 

@@ -207,6 +207,25 @@ class PersistenceServiceImpl implements PersistenceService {
     }
 
     @Override
+    public WriteResult updateFields(final String path, final Map<String, Object> fields) {
+        try {
+            final Map<String, Object> translatedFields = new java.util.HashMap<>();
+            final PropertyNamingStrategy namingStrategy = entityHelper.getPropertyNamingStrategy();
+
+            for (Map.Entry<String, Object> entry : fields.entrySet()) {
+                String translatedKey = namingStrategy != null
+                    ? namingStrategy.translate(entry.getKey())
+                    : entry.getKey();
+                translatedFields.put(translatedKey, entry.getValue());
+            }
+
+            return firestore.document(path).update(translatedFields).get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new PersistenceException(e);
+        }
+    }
+
+    @Override
     @SafeVarargs
     public final <T> List<WriteResult> delete(final T... entities) {
 
