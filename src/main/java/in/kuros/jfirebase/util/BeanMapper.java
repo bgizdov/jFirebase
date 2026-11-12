@@ -95,7 +95,11 @@ public class BeanMapper<T> {
                 }
                 getters.put(propertyName, method);
 
-                final Field declaredField = getDeclaredField(clazz, propertyName);
+                final Field declaredField = findDeclaredField(clazz, propertyName);
+                if (declaredField == null) {
+                    // getter-only property (no backing field in the hierarchy): nothing to inspect
+                    continue;
+                }
                 declaredField.setAccessible(true);
                 if (declaredField.isAnnotationPresent(Transient.class) || Modifier.isTransient(declaredField.getModifiers())) {
                     transients.add(propertyName);
@@ -202,17 +206,21 @@ public class BeanMapper<T> {
         } while (currentClass != null && !currentClass.equals(Object.class));
     }
 
-    private Field getDeclaredField(Class<T> clazz, String propertyName)
-        throws NoSuchFieldException {
-        try {
-            return clazz.getDeclaredField(propertyName);
-        } catch (NoSuchFieldException e) {
-            Class superClass = clazz.getSuperclass();
-            if (superClass != null) {
-                return superClass.getDeclaredField(propertyName);
+    /**
+     * Finds the field with the given name on the class or any of its superclasses (most derived wins).
+     *
+     * @return the field, or {@code null} when no class in the hierarchy declares it
+     */
+    private static Field findDeclaredField(Class<?> clazz, String propertyName) {
+        Class<?> current = clazz;
+        while (current != null && current != Object.class) {
+            try {
+                return current.getDeclaredField(propertyName);
+            } catch (NoSuchFieldException e) {
+                current = current.getSuperclass();
             }
-            throw e;
         }
+        return null;
     }
 
     public Optional<String> getId() {
