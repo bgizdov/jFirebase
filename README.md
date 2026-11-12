@@ -48,3 +48,5 @@ public class ShapeResolver implements DocumentTypeResolver {
 ```
 
 The returned class must be `Shape` or a subclass. The annotation takes precedence over `@JsonSubTypes` on the same class.
+
+The map keys are the stored Firestore field names (before naming-strategy translation). A resolver for a concrete base class should return a concrete fallback class rather than `null` if base instances must be writable. Reading a subclass directly keeps that subclass, even though the annotation is inherited.

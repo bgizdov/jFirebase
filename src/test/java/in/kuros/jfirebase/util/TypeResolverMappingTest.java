@@ -52,6 +52,7 @@ class TypeResolverMappingTest {
     }
 
     public static class Circle extends Shape {
+        public Double radius;
     }
 
     public static class Polygon extends Shape {
@@ -226,5 +227,91 @@ class TypeResolverMappingTest {
         read(map("kind", "flat"), Shape.class);
         read(map("kind", "x"), Shape.class);
         assertEquals(1, ShapeResolver.CREATED.get());
+    }
+
+    @Test
+    void aSubclassReadDirectlyKeepsItsDeclaredClass() {
+        assertSame(Circle.class, read(map("kind", "flat"), Circle.class).getClass());      // resolver -> Polygon
+        assertSame(Circle.class, read(map("kind", "unknown"), Circle.class).getClass());   // resolver -> null
+        assertSame(Circle.class, read(map("kind", "round", "sides", 0L), Circle.class).getClass()); // -> Circle
+    }
+
+    @Test
+    void resolverIsCreatedOncePerClassAfterDirectSubclassRead() {
+        read(map("kind", "flat"), Circle.class);
+        read(map("kind", "flat"), Shape.class);
+        assertEquals(1, ShapeResolver.CREATED.get());
+    }
+
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NONE, property = "type")
+    @JsonSubTypes({@JsonSubTypes.Type(value = NoneA.class, name = "a")})
+    public static class NoneBase {
+        public String type;
+    }
+
+    public static class NoneA extends NoneBase {
+    }
+
+    @Test
+    void jsonTypeInfoWithUseNoneStillUsesJsonSubTypes() {
+        assertSame(NoneA.class, read(map("type", "a"), NoneBase.class).getClass());
+        assertSame(NoneBase.class, read(map("type", "zzz"), NoneBase.class).getClass());
+        assertSame(NoneBase.class, read(map("other", "a"), NoneBase.class).getClass());
+    }
+
+    public static class PredictionResolver implements DocumentTypeResolver {
+        @Override
+        public Class<?> resolve(Map<String, Object> values) {
+            return "s".equals(values.get("t")) ? StringPrediction.class : BoolPrediction.class;
+        }
+    }
+
+    @JFirebaseTypeResolver(PredictionResolver.class)
+    public static class PredictionBase {
+        private String t;
+
+        public String getT() {
+            return t;
+        }
+
+        public void setT(String t) {
+            this.t = t;
+        }
+    }
+
+    public static class StringPrediction extends PredictionBase {
+        private String prediction;
+
+        public String getPrediction() {
+            return prediction;
+        }
+
+        public void setPrediction(String prediction) {
+            this.prediction = prediction;
+        }
+    }
+
+    public static class BoolPrediction extends PredictionBase {
+        private Boolean prediction;
+
+        public Boolean getPrediction() {
+            return prediction;
+        }
+
+        public void setPrediction(Boolean prediction) {
+            this.prediction = prediction;
+        }
+    }
+
+    @Test
+    void siblingsWithSameNamedPropertyOfDifferentTypes() {
+        for (int i = 0; i < 2; i++) {
+            PredictionBase a = read(map("t", "s", "prediction", "home"), PredictionBase.class);
+            PredictionBase b = read(map("t", "b", "prediction", true), PredictionBase.class);
+            assertSame(StringPrediction.class, a.getClass());
+            assertEquals("home", ((StringPrediction) a).getPrediction());
+            assertSame(BoolPrediction.class, b.getClass());
+            assertEquals(Boolean.TRUE, ((BoolPrediction) b).getPrediction());
+        }
     }
 }

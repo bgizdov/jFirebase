@@ -956,7 +956,7 @@ public class NamingStrategyClassMapper {
         private Class<?> resolveType(JFirebaseTypeResolver annotation, Map<String, Object> values) {
             Class<?> resolved;
             try {
-                DocumentTypeResolver resolver = typeResolvers.computeIfAbsent(clazz, c -> {
+                DocumentTypeResolver resolver = typeResolvers.computeIfAbsent(annotation.value(), c -> {
                     try {
                         Constructor<? extends DocumentTypeResolver> ctor = annotation.value().getDeclaredConstructor();
                         ctor.setAccessible(true);
@@ -971,6 +971,10 @@ public class NamingStrategyClassMapper {
                         + " failed for class " + clazz.getName() + ": " + e.getMessage(), e);
             }
             if (resolved != null && !clazz.isAssignableFrom(resolved)) {
+                if (clazz.getDeclaredAnnotation(JFirebaseTypeResolver.class) == null) {
+                    // annotation is only inherited: reading a subclass directly keeps that subclass
+                    return null;
+                }
                 throw new RuntimeException("Type resolver " + annotation.value().getName()
                         + " returned " + resolved.getName() + ", which is not a subtype of "
                         + clazz.getName());

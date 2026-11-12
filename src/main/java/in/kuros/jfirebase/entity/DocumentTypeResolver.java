@@ -7,6 +7,10 @@ import java.util.Map;
  * <p>
  * Implementations must have a public no-argument constructor. One instance is created per annotated
  * class and reused, so implementations must be thread safe.
+ * <p>
+ * The map keys are the stored Firestore field names (before naming-strategy translation). A resolver
+ * for a concrete base class should return a concrete fallback class rather than {@code null} if base
+ * instances must be writable.
  */
 public interface DocumentTypeResolver {
 
