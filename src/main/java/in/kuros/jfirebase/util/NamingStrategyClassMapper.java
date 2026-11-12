@@ -9,6 +9,8 @@ import com.google.cloud.firestore.FieldValue;
 import com.google.cloud.firestore.GeoPoint;
 import com.google.cloud.firestore.annotation.*;
 import com.google.firestore.v1.Value;
+import in.kuros.jfirebase.entity.DocumentTypeResolver;
+import in.kuros.jfirebase.entity.JFirebaseTypeResolver;
 import in.kuros.jfirebase.provider.firebase.EntityHelper;
 import org.apache.http.util.TextUtils;
 
@@ -46,6 +48,9 @@ public class NamingStrategyClassMapper {
 
     private static final ConcurrentMap<Class<?>, BeanMapper<?>>
             mappers = new ConcurrentHashMap<>();
+
+    private static final ConcurrentMap<Class<?>, DocumentTypeResolver>
+            typeResolvers = new ConcurrentHashMap<>();
 
     private static void hardAssert(boolean assertion) {
         hardAssert(assertion, "Internal inconsistency");
@@ -939,12 +944,45 @@ public class NamingStrategyClassMapper {
         }
 
         private T getInstance(Map<String, Object> values) {
-            Optional<JsonSubTypes.Type> foundSubType = findSubType(values);
+            JFirebaseTypeResolver resolverAnnotation = clazz.getAnnotation(JFirebaseTypeResolver.class);
+            if (resolverAnnotation != null) {
+                return getInstance(resolveType(resolverAnnotation, values));
+            }
 
+            Optional<JsonSubTypes.Type> foundSubType = findSubType(values);
+            return getInstance(foundSubType.isPresent() ? foundSubType.get().value() : null);
+        }
+
+        private Class<?> resolveType(JFirebaseTypeResolver annotation, Map<String, Object> values) {
+            Class<?> resolved;
+            try {
+                DocumentTypeResolver resolver = typeResolvers.computeIfAbsent(clazz, c -> {
+                    try {
+                        Constructor<? extends DocumentTypeResolver> ctor = annotation.value().getDeclaredConstructor();
+                        ctor.setAccessible(true);
+                        return ctor.newInstance();
+                    } catch (ReflectiveOperationException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+                resolved = resolver.resolve(values);
+            } catch (RuntimeException e) {
+                throw new RuntimeException("Type resolver " + annotation.value().getName()
+                        + " failed for class " + clazz.getName() + ": " + e.getMessage(), e);
+            }
+            if (resolved != null && !clazz.isAssignableFrom(resolved)) {
+                throw new RuntimeException("Type resolver " + annotation.value().getName()
+                        + " returned " + resolved.getName() + ", which is not a subtype of "
+                        + clazz.getName());
+            }
+            return resolved;
+        }
+
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        private T getInstance(Class foundClazz) {
             T instance;
             try {
-                if (foundSubType.isPresent()) {
-                    Class foundClazz = foundSubType.get().value();
+                if (foundClazz != null && foundClazz != clazz) {
                     addProperties(foundClazz);
                     addSetters(foundClazz);
                     Constructor subTypeConstructor = foundClazz.getDeclaredConstructor();
@@ -967,6 +1005,9 @@ public class NamingStrategyClassMapper {
             Optional<JsonSubTypes.Type> foundSubType = Optional.empty();
             if (!TextUtils.isEmpty(property)) {
                 JsonSubTypes subTypes = clazz.getAnnotation(JsonSubTypes.class);
+                if (subTypes == null) {
+                    return Optional.empty();
+                }
                 JsonSubTypes.Type[] childTypes = subTypes.value();
                 for (Map.Entry<String, Object> entry : values.entrySet()) {
                     if (entry.getKey().equals(property)) {

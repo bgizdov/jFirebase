@@ -31,3 +31,20 @@ Step 1. Add the JitPack repository to your build file
     <version>1.4.0</version>
 </dependency>
   ```
+
+# Choosing a subclass from the whole document
+
+`@JsonTypeInfo`/`@JsonSubTypes` can only look at one property. To decide the concrete class from several fields, annotate the declared class with `@JFirebaseTypeResolver` and implement `DocumentTypeResolver` (public no-argument constructor, one cached instance per annotated class):
+
+```java
+@JFirebaseTypeResolver(ShapeResolver.class)
+public class Shape { ... }
+
+public class ShapeResolver implements DocumentTypeResolver {
+    public Class<?> resolve(Map<String, Object> values) {
+        return "round".equals(values.get("kind")) ? Circle.class : null; // null = Shape itself
+    }
+}
+```
+
+The returned class must be `Shape` or a subclass. The annotation takes precedence over `@JsonSubTypes` on the same class.
