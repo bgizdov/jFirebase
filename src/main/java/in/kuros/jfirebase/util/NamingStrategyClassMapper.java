@@ -509,7 +509,7 @@ public class NamingStrategyClassMapper {
         } else if (o instanceof Long) {
             return BigDecimal.valueOf(((Long) o).longValue());
         } else if (o instanceof Double) {
-            return BigDecimal.valueOf(((Double) o).doubleValue()).abs();
+            return BigDecimal.valueOf(((Double) o).doubleValue());
         } else if (o instanceof BigDecimal) {
             return (BigDecimal) o;
         } else if (o instanceof String) {
