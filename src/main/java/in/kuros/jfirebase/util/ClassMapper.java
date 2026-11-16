@@ -11,6 +11,7 @@ import in.kuros.jfirebase.entity.EntityDeclarationException;
 import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -25,6 +26,16 @@ public class ClassMapper {
         return (BeanMapper<T>) mappers.get(clazz);
     }
 
+    private static Double bigDecimalToDouble(BigDecimal value) {
+        double asDouble = value.doubleValue();
+        if (!Double.isInfinite(asDouble) && !Double.isNaN(asDouble)
+                && BigDecimal.valueOf(asDouble).compareTo(value) == 0) {
+            return asDouble;
+        }
+        throw new EntityDeclarationException(
+                "BigDecimal value " + value.toPlainString() + " cannot be stored exactly as a double");
+    }
+
     @SuppressWarnings("unchecked")
     public static <T> Object serialize(T o) {
         if (o == null) {
@@ -32,6 +43,8 @@ public class ClassMapper {
         } else if (o instanceof Number) {
             if (o instanceof Long || o instanceof Integer || o instanceof Double || o instanceof Float) {
                 return o;
+            } else if (o instanceof BigDecimal) {
+                return bigDecimalToDouble((BigDecimal) o);
             } else {
                 throw new EntityDeclarationException(
                         String.format(
